@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, Platform } from 'react-native';
 import styled from 'styled-components/native';
 import Modal from 'react-native-modal';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { ThemeContext } from './ThemeProvider';
 
 const ModalContainer = styled.View<{ theme: any }>`
@@ -101,6 +102,20 @@ const ButtonText = styled.Text<{ theme: any; variant?: 'primary' | 'secondary' |
     variant === 'primary' || variant === 'danger' ? '#FFFFFF' : theme.text};
 `;
 
+const DatePickerContainer = styled.View<{ theme: any }>`
+  background-color: ${({ theme }) => theme.card};
+  border-radius: 12px;
+  padding: 16px;
+  align-items: center;
+`;
+
+const DatePickerButtonRow = styled.View`
+  flex-direction: row;
+  gap: 12px;
+  margin-top: 16px;
+  width: 100%;
+`;
+
 interface TodoModalProps {
   visible: boolean;
   onClose: () => void;
@@ -120,11 +135,13 @@ export default function TodoModal({
   initialData,
   mode = 'add'
 }: TodoModalProps) {
-  const { theme } = useContext(ThemeContext);
+  const { theme, mode: themeMode } = useContext(ThemeContext);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [dueDate, setDueDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempDate, setTempDate] = useState<Date>(new Date());
 
   useEffect(() => {
     if (visible) {
@@ -132,11 +149,18 @@ export default function TodoModal({
         setTitle(initialData.title || '');
         setDescription(initialData.description || '');
         setDueDate(initialData.dueDate || null);
+        if (initialData.dueDate) {
+          setTempDate(new Date(initialData.dueDate));
+        } else {
+          setTempDate(new Date());
+        }
       } else {
         setTitle('');
         setDescription('');
         setDueDate(null);
+        setTempDate(new Date());
       }
+      setShowDatePicker(false);
     }
   }, [visible, initialData]);
 
@@ -166,31 +190,39 @@ export default function TodoModal({
   };
 
   const handleDateSelect = () => {
-    // Show alert with date options
-    // In production, you could use a proper date picker like @react-native-community/datetimepicker
-    const options: any[] = [
-      { text: 'Today', onPress: () => {
-        const date = new Date();
-        date.setHours(23, 59, 59, 999);
-        setDueDate(date.toISOString());
-      }},
-      { text: 'Tomorrow', onPress: () => {
-        const date = new Date();
-        date.setDate(date.getDate() + 1);
-        date.setHours(23, 59, 59, 999);
-        setDueDate(date.toISOString());
-      }},
-      { text: 'Next Week', onPress: () => {
-        const date = new Date();
-        date.setDate(date.getDate() + 7);
-        date.setHours(23, 59, 59, 999);
-        setDueDate(date.toISOString());
-      }},
-      { text: 'Clear', onPress: () => setDueDate(null), style: 'destructive' as const },
-      { text: 'Cancel', style: 'cancel' as const },
-    ];
+    if (dueDate) {
+      setTempDate(new Date(dueDate));
+    } else {
+      setTempDate(new Date());
+    }
+    setShowDatePicker(true);
+  };
 
-    Alert.alert('Select Due Date', 'Choose a date', options);
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+      if (event.type === 'set' && selectedDate) {
+        const date = new Date(selectedDate);
+        date.setHours(23, 59, 59, 999);
+        setDueDate(date.toISOString());
+      }
+    } else {
+      if (selectedDate) {
+        setTempDate(selectedDate);
+      }
+    }
+  };
+
+  const handleDateConfirm = () => {
+    const date = new Date(tempDate);
+    date.setHours(23, 59, 59, 999);
+    setDueDate(date.toISOString());
+    setShowDatePicker(false);
+  };
+
+  const handleDateClear = () => {
+    setDueDate(null);
+    setShowDatePicker(false);
   };
 
   const formatDate = (dateString: string | null) => {
@@ -262,6 +294,46 @@ export default function TodoModal({
             </DateButtonText>
           </DateButton>
         </InputContainer>
+
+        {showDatePicker && Platform.OS === 'android' && (
+          <DateTimePicker
+            value={tempDate}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+            minimumDate={new Date()}
+            themeVariant={themeMode === 'dark' ? 'dark' : 'light'}
+          />
+        )}
+        {showDatePicker && Platform.OS === 'ios' && (
+          <Modal
+            isVisible={showDatePicker}
+            onBackdropPress={() => setShowDatePicker(false)}
+            style={{ justifyContent: 'center', alignItems: 'center' }}
+            backdropOpacity={0.5}
+            animationIn="fadeIn"
+            animationOut="fadeOut"
+          >
+            <DatePickerContainer theme={theme}>
+              <DateTimePicker
+                value={tempDate}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                minimumDate={new Date()}
+                themeVariant={themeMode === 'dark' ? 'dark' : 'light'}
+              />
+              <DatePickerButtonRow>
+                <Button theme={theme} variant="secondary" onPress={handleDateClear}>
+                  <ButtonText theme={theme} variant="secondary">Clear</ButtonText>
+                </Button>
+                <Button theme={theme} variant="primary" onPress={handleDateConfirm}>
+                  <ButtonText theme={theme} variant="primary">Confirm</ButtonText>
+                </Button>
+              </DatePickerButtonRow>
+            </DatePickerContainer>
+          </Modal>
+        )}
 
         <ButtonRow>
           <Button theme={theme} variant="secondary" onPress={onClose} disabled={loading}>
