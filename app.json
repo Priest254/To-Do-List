@@ -16,6 +16,14 @@
     },
     "assetBundlePatterns": [
       "**/*"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "8a2c2d6f-d33c-4beb-8e9b-be759009a805"
+      }
+    },
+    "android": {
+      "package": "com.priest254.todoconvex"
+    }
   }
 }
