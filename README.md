@@ -160,6 +160,16 @@ npm start
    eas build -p ios --profile production
    ```
 
+### Preview Build (APK for Testing)
+
+Build an APK for testing and preview purposes:
+
+```bash
+eas build -p android --profile preview
+```
+
+This will create an APK file that you can download and install directly on Android devices for testing without going through app stores.
+
 ### Local Build (Android)
 
 ```bash
