@@ -19,7 +19,8 @@
     "extra": {
       "eas": {
         "projectId": "8a2c2d6f-d33c-4beb-8e9b-be759009a805"
-      }
+      },
+      "EXPO_PUBLIC_CONVEX_URL": "https://mild-snake-846.convex.cloud"
     },
     "android": {
       "package": "com.priest254.todoconvex"
