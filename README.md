@@ -58,13 +58,15 @@ npm install
 Create a `.env` file in the root directory:
 
 ```env
-CONVEX_URL=<your-convex-url-here>
+EXPO_PUBLIC_CONVEX_URL=<your-convex-url-here>
 ```
 
 **Example:**
 ```env
-CONVEX_URL=https://your-project.convex.cloud
+EXPO_PUBLIC_CONVEX_URL=https://your-project.convex.cloud
 ```
+
+**Important:** For Expo, environment variables must be prefixed with `EXPO_PUBLIC_` to be accessible in the app.
 
 ### 4. Set Up Convex Schema
 
@@ -170,6 +172,20 @@ eas build -p android --profile preview
 
 This will create an APK file that you can download and install directly on Android devices for testing without going through app stores.
 
+**Important:** For EAS builds, you need to set the `EXPO_PUBLIC_CONVEX_URL` environment variable. You can do this in two ways:
+
+1. **Using EAS Secrets (Recommended):**
+   ```bash
+   eas secret:create --scope project --name EXPO_PUBLIC_CONVEX_URL --value "https://your-project.convex.cloud"
+   ```
+
+2. **Or set it during build:**
+   ```bash
+   eas build -p android --profile preview --env EXPO_PUBLIC_CONVEX_URL=https://your-project.convex.cloud
+   ```
+
+The environment variable is automatically configured in `eas.json` for all build profiles.
+
 ### Local Build (Android)
 
 ```bash
@@ -185,12 +201,20 @@ npm run ios
 
 The app requires the following environment variable:
 
-- `CONVEX_URL`: Your Convex project URL (required)
+- `EXPO_PUBLIC_CONVEX_URL`: Your Convex project URL (required)
+
+### For Local Development
 
 Create a `.env` file in the root directory:
 ```
-CONVEX_URL=https://your-project.convex.cloud
+EXPO_PUBLIC_CONVEX_URL=https://your-project.convex.cloud
 ```
+
+**Note:** For Expo, environment variables must be prefixed with `EXPO_PUBLIC_` to be accessible in the app.
+
+### For EAS Builds
+
+For production/preview builds, set the environment variable using EAS Secrets (recommended) or pass it during the build command. See the [Preview Build](#preview-build-apk-for-testing) section for details.
 
 ## Convex Setup Steps
 
